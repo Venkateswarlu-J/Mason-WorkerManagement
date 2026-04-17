@@ -32,12 +32,15 @@ public class UserService {
 
     private BCryptPasswordEncoder encoder=new BCryptPasswordEncoder(12);
 
+    @Autowired
+    OtpService otpService;
+
     @Transactional
-    public Users register(RegisterRequest request){
+    public Users createUser(RegisterRequest request){
         Users user = new Users();
         user.setUsername(request.getUsername());
         user.setEmail(request.getEmail());
-        user.setPassword(encoder.encode(request.getPassword()));
+        user.setPassword(encryptPass(request.getPassword()));
         user.setPhone(request.getPhone());
         user.setRole(Roles.SUPERVISOR);
 
@@ -53,10 +56,15 @@ public class UserService {
     }
 
     public String verify(LoginReq req){
+        String username=req.getUsername()==null?userRepo.findByEmail(req.getEmail()).getUsername():req.getUsername();
         Authentication authentication=
                 authManager.authenticate(new UsernamePasswordAuthenticationToken(
-                        req.getUsername(),req.getPassword()));//we need to confirm that whether it works even the sup enters with gmail or not
+                        username,req.getPassword()));//we need to confirm that whether it works even the sup enters with gmail or not
 //        System.out.println("Hello"+authentication.isAuthenticated());
-        return authentication.isAuthenticated()?jwtService.generateToken(userRepo.findByUsername(req.getUsername())):"fail"; //here we don't want to return
+        return authentication.isAuthenticated()?jwtService.generateToken(userRepo.findByUsername(username)):"fail"; //here we don't want to return
+    }
+
+    public String encryptPass(String pass){
+        return encoder.encode(pass);
     }
 }

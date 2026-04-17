@@ -1,9 +1,8 @@
 package com.example.demo.Controllers;
 
-import com.example.demo.Model.Worker;
+import com.example.demo.Model.WorkerAttendance;
 import com.example.demo.Service.WorkerService;
-import com.example.demo.dtoUser.WorkerDTO;
-import com.example.demo.dtoUser.WorkerRequest;
+import com.example.demo.dtoUser.*;
 import com.example.demo.enums.Categories;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -21,18 +20,39 @@ public class WorkerController {
         return wService.register(worker);
     }
 
-    @GetMapping("/getWorkers")
-    public List<WorkerDTO> getAll(){
-        return wService.getWorkers();
-    }
+//    @GetMapping("/getWorkers")
+//    public List<WorkerDTO> getAll(){
+//        return wService.getWorkers();
+//    }
 
     @DeleteMapping("/removeWorker/{workerId}")
     public String removeWorker(@PathVariable Long workerId){
         return wService.remove(workerId);
     }
 
-    @GetMapping("/getWorkersForAttendance")
-    public List<WorkerDTO> getWorkersForAttendance(String search, Categories categories){
-        return wService.getWorkersForAttendance(search,categories);
+    @GetMapping("/getWorkers")
+    public List<WorkerDTO> getWorkers(
+
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) Categories category,
+            @RequestParam(required = false) String projectName
+    ){
+        return wService.getWorkers(search, category, projectName);
+    }
+
+
+    @PostMapping("/putAttendance")
+    public String putAttendance(@RequestBody AttendanceRequset attendanceRequset){
+        return wService.putAttendance(attendanceRequset);
+    }
+
+    @GetMapping("/getAttendance")
+    public List<AttendanceDTO> getAttendance(){
+        return wService.getAttendance();
+    }
+
+    @PostMapping("/updateAttendance")
+    public String updateAttendance(@RequestBody AttendanceUpdRequest attendanceUpdRequest){
+        return wService.updateAttendance(attendanceUpdRequest);
     }
 }

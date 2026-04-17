@@ -1,10 +1,57 @@
-HELP.md
-target/
-.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
+# ==============================
 
-### STS ###
+# 🔹 Backend (Spring Boot / Java)
+
+# ==============================
+
+target/
+build/
+*.log
+logs/
+
+# Maven
+
+.mvn/wrapper/maven-wrapper.jar
+
+# Gradle
+
+.gradle/
+
+# ==============================
+
+# 🔹 Frontend (React)
+
+# ==============================
+
+node_modules/
+dist/
+build/
+
+# ==============================
+
+#  Environment & Secrets
+
+# ==============================
+
+.env
+.env.*
+application.properties
+application.yml
+
+# Keep example config files
+
+!application-example.properties
+!application-example.yml
+!.env.example
+
+# ==============================
+
+# 🔹 IDE Files
+
+# ==============================
+
+# STS / Eclipse
+
 .apt_generated
 .classpath
 .factorypath
@@ -13,21 +60,34 @@ target/
 .springBeans
 .sts4-cache
 
-### IntelliJ IDEA ###
-.idea
+# IntelliJ IDEA
+
+.idea/
 *.iws
 *.iml
 *.ipr
 
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
+# VS Code
 
-### VS Code ###
 .vscode/
+
+# ==============================
+
+# 🔹 OS Files
+
+# ==============================
+
+.DS_Store
+Thumbs.db
+
+# ==============================
+
+# 🔹 Misc
+
+# ==============================
+
+coverage/
+*.tgz
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

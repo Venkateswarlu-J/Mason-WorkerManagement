@@ -7,13 +7,13 @@ public class WorkerDTO {
     private String workerName;
     private Categories workerCat;
     private String projectName;
-    private ProjectStatus status;
+//    private ProjectStatus status;
 
-    public WorkerDTO(String workerName, Categories workerCat, String projectName, ProjectStatus status) {
+    public WorkerDTO(String workerName, Categories workerCat, String projectName) {
         this.workerName = workerName;
         this.workerCat = workerCat;
         this.projectName = projectName;
-        this.status = status;
+//        this.status = status;
     }
 
     public String getWorkerName() {
@@ -40,13 +40,13 @@ public class WorkerDTO {
         this.projectName = projectName;
     }
 
-    public ProjectStatus getStatus() {
-        return status;
-    }
+//    public ProjectStatus getStatus() {
+//        return status;
+//    }
 
-    public void setStatus(ProjectStatus status) {
-        this.status = status;
-    }
+//    public void setStatus(ProjectStatus status) {
+//        this.status = status;
+//    }
 
     @Override
     public String toString() {
@@ -54,7 +54,7 @@ public class WorkerDTO {
                 "workerName='" + workerName + '\'' +
                 ", workerCat=" + workerCat +
                 ", projectName='" + projectName + '\'' +
-                ", status=" + status +
+//                ", status=" + status +
                 '}';
     }
 }
