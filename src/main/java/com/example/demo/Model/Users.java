@@ -25,6 +25,7 @@ public class Users {
     private Roles role;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    @JsonBackReference
     private Supervisor supervisor;
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     @JsonBackReference

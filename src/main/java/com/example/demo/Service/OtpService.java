@@ -14,6 +14,8 @@ import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Random;
 
+import java.util.*;
+
 @Service
 public class OtpService {
 
@@ -41,7 +43,7 @@ public class OtpService {
     }
 
     public void register(String email) {
-        if(userRepo.findByEmail(email)!=null) throw new RuntimeException("Email already exists");
+        if(userRepo.findByEmail(email)!=null) throw new RuntimeException("Email already exists. Please Login!!");
         String otp=generateOtp();
         sendOtp(email,otp);
     }
@@ -71,19 +73,29 @@ public class OtpService {
         return otpRepo.findByEmail(email);
     }
 
-    public String verifyOtp(OtpReq otpReq){
+    public Map<String, Object> verifyOtp(OtpReq otpReq){
         OtpDetails otpDetails=findOtpDetails(otpReq.getEmail());
-        if(otpDetails==null) return "OTP not found";
+
+        if(otpDetails==null) return Map.of("success", false, "message", "OTP not generated yet!");
+
+        System.out.println(otpDetails.getEmail()+" "+otpReq.getEmail()+" "+otpDetails.getOtp()+" "+otpReq.getOtp());
+
 //        if(otpDetails.getOtpVerified())
 //            return "Already verified";
-        if(otpDetails.getOtpExpiry().isBefore(LocalDateTime.now()))
-            return "OTP expired";
-        if(!otpDetails.getOtp().equals(otpReq.getOtp()))
-            return "Invalid OTP";
+
+        if (otpDetails.getOtpExpiry().isBefore(LocalDateTime.now())) {
+            return Map.of("success", false, "message", "OTP expired");
+        }
+
+        if (!otpDetails.getOtp().equals(otpReq.getOtp())) {
+            return Map.of("success", false, "message", "Invalid OTP");
+        }
+
         otpDetails.setOtpVerified(true);
         otpDetails.setOtp("");
         otpRepo.save(otpDetails);
-        return "OTP verified successfully";
+
+        return Map.of("success", true, "message", "OTP verified successfully");
     }
 
     public boolean isVerified(String email) {

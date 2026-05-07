@@ -1,25 +1,32 @@
 package com.example.demo.dtoUser;
 
 public class LoginReq {
-    private String username;
+    private String identifier;
     private String password;
-    private String email;
 
-    public String getEmail() {
-        return email;
+    public String getIdentifier() {
+        return identifier;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public void setIdentifier(String identifier) {
+        this.identifier = identifier;
     }
 
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
+//    public String getEmail() {
+//        return email;
+//    }
+//
+//    public void setEmail(String email) {
+//        this.email = email;
+//    }
+//
+//    public String getUsername() {
+//        return username;
+//    }
+//
+//    public void setUsername(String username) {
+//        this.username = username;
+//    }
 
     public String getPassword() {
         return password;
@@ -32,9 +39,8 @@ public class LoginReq {
     @Override
     public String toString() {
         return "LoginReq{" +
-                "username='" + username + '\'' +
+                "identifier='" + identifier + '\'' +
                 ", password='" + password + '\'' +
-                ", email='" + email + '\'' +
                 '}';
     }
 }

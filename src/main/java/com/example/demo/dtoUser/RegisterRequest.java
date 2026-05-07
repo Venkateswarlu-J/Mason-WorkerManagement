@@ -37,4 +37,14 @@ public class RegisterRequest {
     public void setPhone(String phone) {
         this.phone = phone;
     }
+
+    @java.lang.Override
+    public java.lang.String toString() {
+        return "RegisterRequest{" +
+                "username='" + username + '\'' +
+                ", email='" + email + '\'' +
+                ", password='" + password + '\'' +
+                ", phone='" + phone + '\'' +
+                '}';
+    }
 }

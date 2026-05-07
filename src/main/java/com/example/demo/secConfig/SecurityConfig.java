@@ -17,7 +17,11 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
+import org.springframework.context.annotation.Bean;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.cors.CorsConfigurationSource;
+import java.util.*;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -26,15 +30,31 @@ public class SecurityConfig {
     private JWTFilter jwtFilter;
     @Autowired
     private UserDetailsService userDetailsService;
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of("http://localhost:5173","http://localhost:3000"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
-        return http.csrf(Customizer->Customizer.disable()).//to remove the csrf
-                authorizeHttpRequests(Request->Request
-                .requestMatchers("/","/register","/login")
+
+        return http.csrf(Customizer->Customizer.disable())//to remove the csrf
+                .cors(cors->{})
+                .authorizeHttpRequests(Request->Request
+                .requestMatchers("/","/register","/login","/verifyOTP","/createAccount")
                 .permitAll()
-                .anyRequest().authenticated()).//to authenticate every request credentials
-                httpBasic(Customizer.withDefaults()).//the basic
-                sessionManagement(Session->Session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)).//making the session as stateless
+                .anyRequest().authenticated())//to authenticate every request credentials
+                .httpBasic(Customizer.withDefaults())//the basic
+                .sessionManagement(Session->Session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)).//making the session as stateless
                 addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class).
                 build();
     }

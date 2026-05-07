@@ -1,11 +1,12 @@
 package com.example.demo.Service;
 
-import com.example.demo.Model.Supervisor;
+import com.example.demo.Model.*;
 import com.example.demo.Model.Users;
 import com.example.demo.dtoUser.LoginReq;
 import com.example.demo.dtoUser.RegisterRequest;
 import com.example.demo.enums.Roles;
 import com.example.demo.repo.SupRepo;
+import com.example.demo.dtoUser.LoginRes;
 import com.example.demo.repo.UserRepo;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +38,7 @@ public class UserService {
 
     @Transactional
     public Users createUser(RegisterRequest request){
+        System.out.println(request);
         Users user = new Users();
         user.setUsername(request.getUsername());
         user.setEmail(request.getEmail());
@@ -55,13 +57,32 @@ public class UserService {
         return userRepo.save(user);
     }
 
-    public String verify(LoginReq req){
-        String username=req.getUsername()==null?userRepo.findByEmail(req.getEmail()).getUsername():req.getUsername();
+    public LoginRes verify(LoginReq req){
+        System.out.println(req);
+        LoginRes resp=new LoginRes();
+        String username=req.getIdentifier();
+        if(req.getIdentifier().matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9-]+\\.[A-Za-z]{2,}$")) {
+            Users user = userRepo.findByEmail(username);
+            if (user == null){
+//                resp.setSuccess(false);
+                resp.setMessage("Email is not registered yet!!");
+                return resp;
+            }
+            resp.setSupervisor(user.getSupervisor());
+            username = user.getUsername();
+        }
         Authentication authentication=
                 authManager.authenticate(new UsernamePasswordAuthenticationToken(
                         username,req.getPassword()));//we need to confirm that whether it works even the sup enters with gmail or not
 //        System.out.println("Hello"+authentication.isAuthenticated());
-        return authentication.isAuthenticated()?jwtService.generateToken(userRepo.findByUsername(username)):"fail"; //here we don't want to return
+        System.out.println(authentication.isAuthenticated());
+        if(authentication.isAuthenticated()){
+            resp.setJwt(jwtService.generateToken(userRepo.findByUsername(username)));
+            resp.setSuccess(true);
+            resp.setMessage("Successfully Logined!");
+        }
+        else resp.setMessage("fail");//here we don't want to return;
+        return resp;
     }
 
     public String encryptPass(String pass){
