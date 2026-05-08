@@ -56,9 +56,9 @@ public class WorkerService {
     public String register(WorkerRequest request) {
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String email = auth.getName();//need to check whether it return email or an username;
+        String username = auth.getName();//need to check whether it return email or an username;
 //        System.out.println("faa"+email);
-        Users loggedUser = userRepo.findByEmail(email);
+        Users loggedUser = userRepo.findByUsername(username);
 //        System.out.println(loggedUser.getEmail()+" "+loggedUser.getRole());
 
         //actually we don't give the option to create the worker for the worker role it is an optional
@@ -119,7 +119,7 @@ public class WorkerService {
 //        int cnt=wRepo.deleteByWorkerIDAndSupervisor_supId(workerID,supId);
         Worker worker = wRepo.findByWorkerIDAndIsActiveTrue(workerID);
         if(worker==null) return "Not found !";
-//        System.out.println(worker+" is going to dlete");
+//        System.out.println(worker+" is going to delete");
         worker.setActive(false);
 //        worker.setSupervisor(null);
 //        worker.setUser(null);
@@ -129,9 +129,9 @@ public class WorkerService {
 
     public List<WorkerDTO> getWorkers(String search, Categories category, String projectName) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String email = auth.getName();//need to check whether it return email or an username;
+        String username = auth.getName();//need to check whether it return email or an username; it return usernmae and it accessing the jwt subject
 //        System.out.println("faa"+email);
-        Users loggedUser = userRepo.findByEmail(email);
+        Users loggedUser = userRepo.findByUsername(username);
 //        System.out.println(loggedUser.getEmail()+" "+loggedUser.getRole());
 
         //actually we don't give the option to create the worker for the worker role it is an optional

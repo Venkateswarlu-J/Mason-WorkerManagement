@@ -20,23 +20,25 @@ import java.util.function.Function;
 @Service
 public class JwtService {
 
-    String secretKey=null;
-
-    public JwtService() throws Exception{
-        KeyGenerator keyGenerator=KeyGenerator.getInstance("HmacSHA256");
-        javax.crypto.SecretKey key=keyGenerator.generateKey();
-        secretKey= Base64.getEncoder().encodeToString(key.getEncoded());
-    }
+//    String secretKey="bXlTZWNyZXRLZXlGb3JNYXNvbk1hdGVBcHBsaWNhdGlvbjEyMzQ1Njc4OTAxMjM0NTY=";
+    String secretKey="bXlTZWNyZXRLZXlGb3JNYXNvbk1hdGVBcHBsaWNhdGlvbjEyMzQ1Njc4OTAxMjM0NTY=bXlleHRyYQ==";
+//    public JwtService() throws Exception{
+//        KeyGenerator keyGenerator=KeyGenerator.getInstance("HmacSHA256");
+//        javax.crypto.SecretKey key=keyGenerator.generateKey();
+//        secretKey= Base64.getEncoder().encodeToString(key.getEncoded());
+//    }
     public String generateToken(Users user) {
         Map<String,Object> claims=new HashMap<>();
         System.out.println("UserId from user object: " + user.getUserId());
         System.out.println("Role from user object: " + user.getRole());
+        System.out.println("Username from user object: " + user.getUsername());
+        claims.put("Username",user.getUsername());
         claims.put("UserId",user.getUserId());
         claims.put("Role",user.getRole());
         System.out.println(claims.get("Role")+" "+claims.get("UserId"));
         return Jwts.builder()
                 .setClaims(claims)
-                .setSubject(user.getUserId()+"")
+                .setSubject(user.getUsername()) //This should be mail and in the loadbyemial in userdetails and userdetails.getUsername is getMail() all should be consistent
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis()+(1000*60*30*30)))
                 .signWith(getKey())
@@ -68,7 +70,8 @@ public class JwtService {
 
     public boolean validateToken(String token, UserDetails userDetails) {
         final String username = extractUsername(token);
-        return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
+        return username.equals(userDetails.getUsername()) && !isTokenExpired(token);    //the getUsernmae returns email is there any problem to modify this emthod as getEmail() because the userPrincipal should be implement all detail
+        //of userdetails so the getUsername is one of the method i think the getEmail is not there in that
     }
 
     private Date extractExpiration(String token) {

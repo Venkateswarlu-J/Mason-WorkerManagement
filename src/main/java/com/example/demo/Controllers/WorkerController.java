@@ -13,7 +13,7 @@ import java.util.List;
 public class WorkerController {
     @Autowired
     private WorkerService wService;
-    @PostMapping("/createWorker")
+    @PostMapping("/addWorker")
     public String register(@RequestBody WorkerRequest worker){
         System.out.println(worker.getEmail());
         System.out.println(worker);

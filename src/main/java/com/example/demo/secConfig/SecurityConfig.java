@@ -5,6 +5,7 @@ import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -37,6 +38,7 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(List.of("http://localhost:5173","http://localhost:3000"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
+        configuration.setExposedHeaders(List.of("Authorization"));
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -45,18 +47,23 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
-
-        return http.csrf(Customizer->Customizer.disable())//to remove the csrf
-                .cors(cors->{})
-                .authorizeHttpRequests(Request->Request
-                .requestMatchers("/","/register","/login","/verifyOTP","/createAccount")
-                .permitAll()
-                .anyRequest().authenticated())//to authenticate every request credentials
-                .httpBasic(Customizer.withDefaults())//the basic
-                .sessionManagement(Session->Session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)).//making the session as stateless
-                addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class).
-                build();
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        return http
+                .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))  // ← fixed
+                .authorizeHttpRequests(req -> req
+//                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/", "/register", "/login", "/verifyOTP", "/createAccount")
+                        .permitAll()
+                        .anyRequest().authenticated()
+                )
+                .httpBasic(basic -> basic.disable())
+                .formLogin(form -> form.disable())
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+                .build();
     }
 
     @Bean
