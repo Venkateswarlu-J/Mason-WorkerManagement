@@ -9,7 +9,7 @@ import java.util.List;
 @Repository
 public interface ProjRepo extends JpaRepository<Project,Integer> {
     List<Project> findAllBySupervisor_SupId(Long supId);
-    Project findByProjectNameAndSupervisor_SupId(String projectName, Long supId);
+    Project findByProjectIdAndSupervisor_SupId(Long projectId, Long supId);
 
     boolean existsByProjectNameAndSupervisor_SupId(String projectName, Long supId);
 }

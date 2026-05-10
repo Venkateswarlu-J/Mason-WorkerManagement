@@ -71,6 +71,7 @@ public class UserService {
             resp.setSupervisor(user.getSupervisor());
             username = user.getUsername();
         }
+        else resp.setSupervisor(userRepo.findByUsername(username).getSupervisor());
         Authentication authentication=
                 authManager.authenticate(new UsernamePasswordAuthenticationToken(
                         username,req.getPassword()));//we need to confirm that whether it works even the sup enters with gmail or not
@@ -79,7 +80,7 @@ public class UserService {
         if(authentication.isAuthenticated()){
             resp.setJwt(jwtService.generateToken(userRepo.findByUsername(username)));
             resp.setSuccess(true);
-            resp.setMessage("Successfully Logined!");
+            resp.setMessage("Successfully login!");
         }
         else resp.setMessage("fail");//here we don't want to return;
         return resp;

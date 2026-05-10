@@ -5,6 +5,7 @@ import com.example.demo.Service.WorkerService;
 import com.example.demo.dtoUser.*;
 import com.example.demo.enums.Categories;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,24 +14,35 @@ import java.util.List;
 public class WorkerController {
     @Autowired
     private WorkerService wService;
+
     @PostMapping("/addWorker")
-    public String register(@RequestBody WorkerRequest worker){
+    public ResponseEntity<?> register(@RequestBody WorkerRequest worker){
         System.out.println(worker.getEmail());
         System.out.println(worker);
         return wService.register(worker);
     }
 
-//    @GetMapping("/getWorkers")
-//    public List<WorkerDTO> getAll(){
-//        return wService.getWorkers();
-//    }
+    @GetMapping("/getWorkers")
+    public List<WorkerDTO> getAll(){
+        return wService.getWorkers();
+    }
+
+    @GetMapping("/getRemovedWorkers")
+    public List<WorkerDTO> getRemovedWorkers(){
+        return wService.getRemovedWorkers();
+    }
+
+    @PutMapping("/updateWorker/{workerId}")
+    public ResponseEntity<?> updateWorker(@RequestBody WorkerRequest workerRequest,@PathVariable Long workerId){
+        return wService.updateWorker(workerRequest,workerId);
+    }
 
     @DeleteMapping("/removeWorker/{workerId}")
-    public String removeWorker(@PathVariable Long workerId){
+    public ResponseEntity<?> removeWorker(@PathVariable Long workerId){
         return wService.remove(workerId);
     }
 
-    @GetMapping("/getWorkers")
+    @GetMapping("/getAllWorkers")
     public List<WorkerDTO> getWorkers(
 
             @RequestParam(required = false) String search,

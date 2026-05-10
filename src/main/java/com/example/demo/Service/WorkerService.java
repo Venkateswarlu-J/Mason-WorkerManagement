@@ -14,6 +14,8 @@ import com.example.demo.repo.UserRepo;
 import com.example.demo.repo.WorkerRepo;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -44,16 +46,28 @@ public class WorkerService {
         this.wRepo = wRepo;
     }
 //Need to find the worker by an category if any argument is passed other wise all workers
-//    public List<WorkerDTO> getWorkers() {
-//        Authentication auth=SecurityContextHolder.getContext().getAuthentication();
-//        String email= auth.getName();
-//        Users loggedUser = userRepo.findByEmail(email);
-////        System.out.println(loggedUser);
-//        return wRepo.findBySupervisor_SupIdAndIsActiveTrue(loggedUser.getUserId());//
-//    }
+    public List<WorkerDTO> getWorkers() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String username = auth.getName();
+        Users loggedUser = userRepo.findByUsername(username);
+        if(!(loggedUser.getRole()==Roles.SUPERVISOR)){
+            return new ArrayList<>();
+        }
+        return wRepo.findWorkers(loggedUser.getSupervisor().getSupId(),null,null);
+    }
+
+    public List<WorkerDTO> getRemovedWorkers() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String username = auth.getName();
+        Users loggedUser = userRepo.findByUsername(username);
+        if(!(loggedUser.getRole()==Roles.SUPERVISOR)){
+            throw new RuntimeException("Acess denied");
+        }
+        return wRepo.findRemovedWorkers(loggedUser.getSupervisor().getSupId(),null,null);
+    }
 
     @Transactional
-    public String register(WorkerRequest request) {
+    public ResponseEntity<?> register(WorkerRequest request) {
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String username = auth.getName();//need to check whether it return email or an username;
@@ -63,30 +77,37 @@ public class WorkerService {
 
         //actually we don't give the option to create the worker for the worker role it is an optional
         if(!(loggedUser.getRole()==Roles.SUPERVISOR)){
-            throw new RuntimeException("Access denied");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Access denied");
         }
         Supervisor supervisor = loggedUser.getSupervisor();
 
-        Users check=userRepo.findByEmail(request.getEmail());
+        Users check=userRepo.findByUsername(request.getWorkerName());
 //        System.out.println("worker email"+request.getEmail()+" supe role"+check);
-
+        Users user = new Users();
         if(check!=null){
             if (!(check.getRole()==Roles.WORKER)) {
-                return "Email already registered with another role";
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Email already registered with another role");
             }
 
             Worker exist=check.getWorker();
             if(exist.isActive()){
-                return "Email already in use by active worker";
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Email already in use by active worker");
             }
             else{
                 exist.setActive(true);
 //                exist.setSupervisor(supervisor);
-                return "Successfully Created !";
+                if(!request.getEmail().trim().isEmpty()) {
+                    user.setPassword(otpService.sendPass(request.getEmail(),supervisor.getSup_name()));
+                    user.setEmail(request.getEmail());
+                }
+                return ResponseEntity.ok("Successfully Created !");
             }
         }
 
-        Users user = new Users();
+
         user.setUsername(request.getWorkerName());
         if(!request.getEmail().trim().isEmpty()) {
             user.setPassword(otpService.sendPass(request.getEmail(),supervisor.getSup_name()));
@@ -111,19 +132,21 @@ public class WorkerService {
         user.setSupervisor(supervisor);
         //need to change the register
         userRepo.save(user);
-        return "Successfully Created the worker"+worker.getWorkerName();
+        return ResponseEntity.ok("Successfully Created the worker"+worker.getWorkerName());
     }
 
     @Transactional
-    public String remove(Long workerID) {
-//        int cnt=wRepo.deleteByWorkerIDAndSupervisor_supId(workerID,supId);
-        Worker worker = wRepo.findByWorkerIDAndIsActiveTrue(workerID);
-        if(worker==null) return "Not found !";
-//        System.out.println(worker+" is going to delete");
-        worker.setActive(false);
-//        worker.setSupervisor(null);
-//        worker.setUser(null);
-        return "Successfully deleted"+worker;
+    public ResponseEntity<?> remove(Long workerID) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String username = auth.getName();
+        Users loggedUser = userRepo.findByUsername(username);
+        if(!(loggedUser.getRole()==Roles.SUPERVISOR)){
+            throw new RuntimeException("Access denied");
+        }
+
+        Worker worker=wRepo.findByWorkerIDAndSupervisor_SupId(workerID,loggedUser.getSupervisor().getSupId());
+        worker.setActive(!worker.getActive());
+        return ResponseEntity.ok("Successfully  "+(worker.getActive()?"Added":"Removed"));
     }
 
 
@@ -145,8 +168,8 @@ public class WorkerService {
     @Transactional
     public String putAttendance(AttendanceRequset attendanceRequset) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String email = auth.getName();
-        Users loggedUser = userRepo.findByEmail(email);
+        String username = auth.getName();
+        Users loggedUser = userRepo.findByUsername(username);
         if(!(loggedUser.getRole()==Roles.SUPERVISOR)){
             throw new RuntimeException("Access denied");
         }
@@ -215,5 +238,28 @@ public class WorkerService {
         workerAttendance.setUpdatedAt(LocalDateTime.now());
         workerAttendance.setAttendanceStatus(attendanceUpdRequest.getAttendanceStatus());
         return "Updated successfully";
+    }
+
+    @Transactional
+    public ResponseEntity<?> updateWorker(WorkerRequest workerRequest, Long workerId) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String username = auth.getName();
+        Users loggedUser = userRepo.findByUsername(username);
+        if(!(loggedUser.getRole()==Roles.SUPERVISOR)){
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("Access denied");
+        }
+        Supervisor supervisor = loggedUser.getSupervisor();
+        Worker worker=wRepo.findByWorkerNameAndSupervisor_SupIdAndIsActiveTrue(workerRequest.getWorkerName(),supervisor.getSupId());
+        if(worker!=null&&!worker.getWorkerID().equals(workerId)) return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body("Username Already Existed");
+
+        Worker worker1=wRepo.findByWorkerIDAndIsActiveTrue(workerId);
+        worker1.setWorkerName(workerRequest.getWorkerName());
+        worker1.setPayPerDay(workerRequest.getPayPerDay());
+        worker1.setWorkerCat(workerRequest.getWorkerCat());
+        worker1.setWorkerPhone(workerRequest.getWorkerPhone());
+
+        return ResponseEntity.ok("Updated successfully");
     }
 }

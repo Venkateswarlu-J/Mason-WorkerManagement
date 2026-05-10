@@ -21,10 +21,35 @@ public interface WorkerRepo extends JpaRepository<Worker,Integer> {
 
     Worker findByWorkerIDAndSupervisor_SupIdAndIsActiveFalse(Long workerId, Long supId);
 
+
     @Query("""
     SELECT new com.example.demo.dtoUser.WorkerDTO(
         w.workerName,
         w.workerCat,
+        w.workerPhone,
+        w.workerID,
+        w.payPerDay,
+        ''
+    )
+    FROM Worker w
+    WHERE w.supervisor.supId = :supId
+    AND w.isActive = false
+    AND (:category IS NULL OR w.workerCat = :category)
+    AND (:search IS NULL OR LOWER(w.workerName) LIKE LOWER(CONCAT('%',:search,'%')))
+""")
+    List<WorkerDTO> findRemovedWorkers(
+            @Param("supId") Long supId,
+            @Param("search") String search,
+            @Param("category") Categories category
+    );
+
+    @Query("""
+    SELECT new com.example.demo.dtoUser.WorkerDTO(
+        w.workerName,
+        w.workerCat,
+        w.workerPhone,
+        w.workerID,
+        w.payPerDay,
         ''
     )
     FROM Worker w
@@ -38,6 +63,12 @@ public interface WorkerRepo extends JpaRepository<Worker,Integer> {
             @Param("search") String search,
             @Param("category") Categories category
     );
+
+    Worker findByWorkerNameAndSupervisor_SupIdAndIsActiveTrue(String workerName, Long supId);
+
+    Worker findByWorkerIDAndSupervisor_SupId(Long workerID,Long supId);
+
+//    List<WorkerDTO> findBySupervisor_SupIdAndIsActiveTrue(Long supId);
 //    @Transactional
 //    int deleteByWorkerIDAndSupervisor_supId(Long workerID);
 }

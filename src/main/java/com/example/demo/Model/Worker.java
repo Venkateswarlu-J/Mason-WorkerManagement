@@ -45,6 +45,7 @@ public class Worker {
     public void setActive(boolean active) {
         isActive = active;
     }
+    public boolean getActive(){return isActive;}
 
     public Users getUser() {
         return user;

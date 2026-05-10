@@ -22,6 +22,10 @@ public class Project {
     @Column(unique = true)
     private String projectName;
 
+    private String projectOwner;
+
+    private String ownerPhone;
+
     private String Location;
 
     @Enumerated(EnumType.STRING)
@@ -34,6 +38,35 @@ public class Project {
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
+
+    @Column(columnDefinition = "boolean default true")
+    private boolean isActive;      //Default value should be active
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public void setActive(boolean active) {
+        isActive = active;
+    }
+
+    public boolean getActive(){return isActive;}
+
+    public String getProjectOwner() {
+        return projectOwner;
+    }
+
+    public void setProjectOwner(String projectOwner) {
+        this.projectOwner = projectOwner;
+    }
+
+    public String getOwnerPhone() {
+        return ownerPhone;
+    }
+
+    public void setOwnerPhone(String ownerPhone) {
+        this.ownerPhone = ownerPhone;
+    }
 
     public LocalDate getStartDate() {
         return startDate;
@@ -111,6 +144,8 @@ public class Project {
     public String toString() {
         return "Project{" +
                 "projectId=" + projectId +
+                ", projOwner='" + projectOwner + '\'' +
+                ", ownerPhone='" + ownerPhone + '\'' +
                 ", supervisor=" + supervisor +
                 ", projectName='" + projectName + '\'' +
                 ", Location='" + Location + '\'' +
@@ -119,6 +154,7 @@ public class Project {
                 ", endDate=" + endDate +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
+                ", isActive=" + isActive +
                 '}';
     }
 }
