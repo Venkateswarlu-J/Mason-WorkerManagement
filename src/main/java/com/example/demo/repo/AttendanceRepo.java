@@ -9,6 +9,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.security.core.parameters.P;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 public interface AttendanceRepo extends JpaRepository<WorkerAttendance,Long> {
@@ -51,4 +53,12 @@ public interface AttendanceRepo extends JpaRepository<WorkerAttendance,Long> {
                       @Param("worker") Worker worker,
                       @Param("start") LocalDate start,
                       @Param("end") LocalDate end);
+
+    @Query("SELECT a FROM WorkerAttendance a WHERE a.worker.supervisor = :supervisor AND a.createdAt BETWEEN :from AND :to")
+    ArrayList<WorkerAttendance> findBySupervisorAndDateBetween(
+            @Param("supervisor") Supervisor supervisor,
+            @Param("from") LocalDateTime from,
+            @Param("to") LocalDateTime to
+    );
+
 }

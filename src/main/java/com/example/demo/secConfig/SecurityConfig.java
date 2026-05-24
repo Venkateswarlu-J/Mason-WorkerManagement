@@ -53,7 +53,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))  // ← fixed
                 .authorizeHttpRequests(req -> req
 //                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/", "/register", "/login", "/verifyOTP", "/createAccount")
+                        .requestMatchers("/", "/register", "/login", "/verifyOTP", "/createAccount","/contact","/send")
                         .permitAll()
                         .anyRequest().authenticated()
                 )

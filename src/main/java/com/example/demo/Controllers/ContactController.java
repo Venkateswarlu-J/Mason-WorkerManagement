@@ -18,7 +18,7 @@ public class ContactController {
         System.out.println("REquest received and data ::"+req);
         SimpleMailMessage msg = new SimpleMailMessage();
         msg.setTo("venkateshjavvaji121@gmail.com");
-        msg.setSubject("[Site Feedback] " + req.getSubject());
+        msg.setSubject("[Mason Site Feedback] " + req.getSubject());
         msg.setText(
                 "From: " + req.getName() + " <" + req.getEmail() + ">\n\n"
                         + req.getMessage()

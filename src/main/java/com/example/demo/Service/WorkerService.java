@@ -25,6 +25,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class WorkerService {
@@ -54,6 +55,23 @@ public class WorkerService {
             return new ArrayList<>();
         }
         return wRepo.findWorkers(loggedUser.getSupervisor().getSupId(),null,null);
+    }
+
+
+    //this is for getAllWorkers
+    public List<WorkerDTO> getWorkers(String search, Categories category, String projectName) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String username = auth.getName();//need to check whether it return email or an username; it return usernmae and it accessing the jwt subject
+//        System.out.println("faa"+email);
+        Users loggedUser = userRepo.findByUsername(username);
+//        System.out.println(loggedUser.getEmail()+" "+loggedUser.getRole());
+
+        //actually we don't give the option to create the worker for the worker role it is an optional
+        if(!(loggedUser.getRole()==Roles.SUPERVISOR)){
+            throw new RuntimeException("Access denied");
+        }
+        Supervisor supervisor = loggedUser.getSupervisor();
+        return wRepo.findWorkers(supervisor.getSupId(),search,category);
     }
 
     public List<WorkerDTO> getRemovedWorkers() {
@@ -94,7 +112,7 @@ public class WorkerService {
             Worker exist=check.getWorker();
             if(exist.isActive()){
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("Email already in use by active worker");
+                        .body("Duplicate Data");
             }
             else{
                 exist.setActive(true);
@@ -109,9 +127,13 @@ public class WorkerService {
 
 
         user.setUsername(request.getWorkerName());
-        if(!request.getEmail().trim().isEmpty()) {
+        if(request.getEmail() != null && !request.getEmail().isBlank()) {
             user.setPassword(otpService.sendPass(request.getEmail(),supervisor.getSup_name()));
             user.setEmail(request.getEmail());
+        }
+        else{
+            user.setEmail(null);
+            user.setPassword(otpService.encryptPass("NO_ACCESS_" + UUID.randomUUID()));
         }
         user.setRole(Roles.WORKER);
         user.setPhone(request.getWorkerPhone());
@@ -150,48 +172,36 @@ public class WorkerService {
     }
 
 
-    public List<WorkerDTO> getWorkers(String search, Categories category, String projectName) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String username = auth.getName();//need to check whether it return email or an username; it return usernmae and it accessing the jwt subject
-//        System.out.println("faa"+email);
-        Users loggedUser = userRepo.findByUsername(username);
-//        System.out.println(loggedUser.getEmail()+" "+loggedUser.getRole());
 
-        //actually we don't give the option to create the worker for the worker role it is an optional
-        if(!(loggedUser.getRole()==Roles.SUPERVISOR)){
-            throw new RuntimeException("Access denied");
-        }
-        Supervisor supervisor = loggedUser.getSupervisor();
-        return wRepo.findWorkers(supervisor.getSupId(),search,category);
-    }
 
     @Transactional
-    public String putAttendance(AttendanceRequset attendanceRequset) {
+    public ResponseEntity<?> putAttendance(AttendanceRequset attendanceRequset) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String username = auth.getName();
         Users loggedUser = userRepo.findByUsername(username);
         if(!(loggedUser.getRole()==Roles.SUPERVISOR)){
-            throw new RuntimeException("Access denied");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Access denied");
         }
         Supervisor supervisor = loggedUser.getSupervisor();
+
+//        System.out.println(attendanceRequset);
         WorkerAttendance workerAttendance=new WorkerAttendance();
         workerAttendance.setAttendanceStatus(attendanceRequset.getAttendanceStatus());
         workerAttendance.setSupervisor(supervisor);
         Worker worker = wRepo.findByWorkerIDAndIsActiveTrue(attendanceRequset.getWorkerId());
-        if(worker==null) return "Worker Not found";
+        if(worker==null) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Worker Not found");
 
         //Handling no duplicates at one day only
         boolean exists = attendanceRepo.existsByWorkerAndAttendanceDate(worker, LocalDate.now());
         if (exists) {
-            throw new RuntimeException("Attendance already marked for this worker today");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Attendance already marked for this worker today");
         }
 
-        workerAttendance.setWorker(worker);
         workerAttendance.setWorker(worker);
         workerAttendance.setCreatedAt(LocalDateTime.now());
         workerAttendance.setAttendanceDate(LocalDate.now());
         attendanceRepo.save(workerAttendance);
-        return "Succesfully added attendance to the "+worker.getWorkerName();
+        return ResponseEntity.ok("Succesfully added attendance to the "+worker.getWorkerName());
     }
 
     public List<AttendanceDTO> getAttendance() {

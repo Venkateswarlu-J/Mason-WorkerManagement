@@ -41,7 +41,8 @@ public class UserService {
         System.out.println(request);
         Users user = new Users();
         user.setUsername(request.getUsername());
-        user.setEmail(request.getEmail());
+        if(!request.getEmail().trim().equals("")) user.setEmail(request.getEmail());
+        else user.setEmail("dup");
         user.setPassword(encryptPass(request.getPassword()));
         user.setPhone(request.getPhone());
         user.setRole(Roles.SUPERVISOR);

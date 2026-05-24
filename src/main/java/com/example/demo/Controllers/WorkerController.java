@@ -54,7 +54,7 @@ public class WorkerController {
 
 
     @PostMapping("/putAttendance")
-    public String putAttendance(@RequestBody AttendanceRequset attendanceRequset){
+    public ResponseEntity<?> putAttendance(@RequestBody AttendanceRequset attendanceRequset){
         return wService.putAttendance(attendanceRequset);
     }
 
